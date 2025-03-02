@@ -2,15 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import './App.css';
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useAppKit } from '@reown/appkit/react'
+
+
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
+  //const [isConnected, setIsConnected] = useState(false);
   const [attendanceData, setAttendanceData] = useState(() => {
     const savedData = localStorage.getItem('attendanceData');
     return savedData ? JSON.parse(savedData) : initializeAttendanceData();
   });
   const [currentWeek, setCurrentWeek] = useState(1);
+  const { open } = useAppKit()
+  const {isConnected} = useConnect()
+  const { disconnect } = useDisconnect()
 
   useEffect(() => {
     localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
@@ -44,7 +51,7 @@ function App() {
       });
 
       setCurrentAccount(accounts[0]);
-      setIsConnected(true);
+      isConnected(true);
       console.log("Connected", accounts[0]);
     } catch (error) {
       console.log(error);
@@ -65,7 +72,7 @@ function App() {
       if (accounts.length !== 0) {
         const account = accounts[0];
         setCurrentAccount(account);
-        setIsConnected(true);
+        isConnected(true);
       } else {
         console.log("No authorized account found");
       }
@@ -185,19 +192,12 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Web3 Attendance Tracker</h1>
-        {!isConnected ? (
-          <div className="connect-wallet">
-            <p>Connect your wallet to mark attendance</p>
-            <button onClick={connectWallet} className="connect-btn">
-              Connect Wallet
-            </button>
-          </div>
-        ) : (
-          <div className="wallet-info">
-            <p>Connected: {currentAccount.substring(0, 6)}...{currentAccount.substring(38)}</p>
-            <p className="helper-text">You can now mark your attendance</p>
-          </div>
-        )}
+            
+      {isConnected ? (
+        <button onClick={() => disconnect()}>Disconnect</button>
+      ) : (
+        <button onClick={() => open()}>Connect Wallet</button>
+      )}
       </header>
       <main>
         {renderWeekSelector()}
